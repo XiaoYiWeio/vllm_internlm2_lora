@@ -21,7 +21,7 @@ from vllm.model_executor.layers.vocab_parallel_embedding import (
 from vllm.model_executor.model_loader.weight_utils import default_weight_loader
 from vllm.model_executor.sampling_metadata import SamplingMetadata
 from vllm.sequence import SamplerOutput
-
+from vllm.config import LoRAConfig 
 
 class InternLM2MLP(nn.Module):
 
@@ -234,10 +234,34 @@ class InternLM2Model(nn.Module):
 
 
 class InternLM2ForCausalLM(nn.Module):
+    packed_modules_mapping = {
+        "qkv_proj": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+        ],
+        "gate_up_proj": [
+            "gate_proj",
+            "up_proj",
+        ],
+    }
+    supported_lora_modules = [
+        "qkv_proj",
+        "o_proj",
+        "gate_up_proj",
+        "down_proj",
+    ]
+    embedding_modules = {
+        #"embed_tokens": "input_embeddings",
+        #"lm_head": "output_embeddings",
+    }
+    embedding_padding_modules = []  #"lm_head"
+
 
     def __init__(
         self,
         config: PretrainedConfig,
+        lora_config: Optional[LoRAConfig] = None,
         linear_method: Optional[LinearMethodBase] = None,
     ) -> None:
         super().__init__()
